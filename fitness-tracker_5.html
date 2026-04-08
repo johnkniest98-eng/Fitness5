@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#8B0000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fitness Tracker">
+<title>Fitness Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #8B0000;
+  --red-light: #A50000;
+  --red-dim: rgba(139,0,0,0.12);
+  --bg: #0f0f0f;
+  --bg2: #1a1a1a;
+  --bg3: #222222;
+  --border: rgba(255,255,255,0.08);
+  --text: #f0f0f0;
+  --muted: #888;
+  --success: #2a7a4b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; overscroll-behavior: none; }
+
+/* HEADER */
+.app-header {
+  background: var(--red);
+  padding: 16px 20px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.app-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: 0.04em; color: #fff; }
+.app-header .date { font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 300; }
+
+/* KEY SETUP */
+.key-banner {
+  background: #1a1200;
+  border-bottom: 1px solid #5a3a00;
+  padding: 12px 20px;
+}
+.key-banner p { font-size: 12px; color: #c8902a; margin-bottom: 8px; }
+.key-banner textarea {
+  width: 100%; height: 56px; font-size: 11px; font-family: monospace;
+  background: #111; border: 1px solid #5a3a00; border-radius: 8px;
+  padding: 8px; color: #f0f0f0; resize: none;
+}
+.key-banner textarea:focus { outline: none; border-color: #c8902a; }
+
+/* DAY SELECTOR */
+.day-strip {
+  display: flex; gap: 6px; padding: 14px 20px;
+  overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+}
+.day-strip::-webkit-scrollbar { display: none; }
+.day-btn {
+  flex: 0 0 auto; width: 44px; height: 44px;
+  border-radius: 10px; border: 1px solid var(--border);
+  background: var(--bg2); color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: 0.03em;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.day-btn span { font-size: 9px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+.day-btn.on { background: var(--red); border-color: var(--red); color: #fff; }
+.day-btn.on span { color: rgba(255,255,255,0.7); }
+
+/* SECTIONS */
+.section { border-bottom: 1px solid var(--border); }
+.section-header {
+  padding: 12px 20px 8px;
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; user-select: none;
+}
+.section-header .sec-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--red);
+}
+.section-header .chevron {
+  margin-left: auto; color: var(--muted); font-size: 16px;
+  transition: transform 0.2s;
+}
+.section-header.collapsed .chevron { transform: rotate(-90deg); }
+.section-body { padding: 0 20px 14px; }
+.section-body.hidden { display: none; }
+
+/* FIELDS */
+.field { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); gap: 8px; }
+.field:last-child { border-bottom: none; }
+.field label { font-size: 13px; color: var(--text); flex: 1; line-height: 1.3; }
+.field label small { display: block; font-size: 11px; color: var(--muted); font-weight: 300; }
+
+/* RATING */
+.rg { display: flex; gap: 4px; }
+.rg button {
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg3); color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: all 0.1s; touch-action: manipulation;
+}
+.rg button.on { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* INPUTS */
+.ti {
+  width: 120px; height: 36px;
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 0 10px; font-size: 14px;
+  background: var(--bg3); color: var(--text);
+  font-family: 'Barlow', sans-serif;
+}
+.ti:focus { outline: none; border-color: var(--red); }
+.wi { width: 170px; }
+
+/* TOGGLE */
+.tog { display: flex; gap: 4px; }
+.tog button {
+  height: 34px; padding: 0 12px;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg3); color: var(--muted);
+  font-size: 13px; cursor: pointer; transition: all 0.1s;
+}
+.tog button.on { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* SUBMIT */
+.submit-area { padding: 16px 20px 32px; display: flex; gap: 10px; }
+.btn-sub {
+  flex: 1; height: 52px; background: var(--red); color: #fff;
+  border: none; border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px; font-weight: 700; letter-spacing: 0.05em;
+  cursor: pointer; transition: all 0.15s;
+  touch-action: manipulation;
+}
+.btn-sub:active { transform: scale(0.98); }
+.btn-sub:disabled { opacity: 0.4; }
+.btn-clr {
+  height: 52px; padding: 0 18px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 600; cursor: pointer;
+}
+
+/* MESSAGE */
+.msg {
+  margin: 0 20px 12px; padding: 12px 16px;
+  border-radius: 10px; font-size: 13px; display: none;
+}
+.msg.ok { background: rgba(42,122,75,0.2); border: 1px solid rgba(42,122,75,0.4); color: #5dba8a; }
+.msg.err { background: rgba(180,40,40,0.15); border: 1px solid rgba(180,40,40,0.3); color: #f08080; }
+
+/* LOADING */
+.spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <h1>Fitness Check-in</h1>
+    <div class="date" id="date-display"></div>
+  </div>
+</div>
+
+<div class="key-banner" id="key-banner">
+  <p>Plak hier je volledige JSON bestand (of alleen de private key)</p>
+  <textarea id="private-key-input" placeholder="-----BEGIN PRIVATE KEY-----&#10;MIIEv...&#10;-----END PRIVATE KEY-----"></textarea>
+</div>
+
+<div class="day-strip" id="day-strip">
+  <button class="day-btn" onclick="selDay(1,this)"><span>DAY</span>1</button>
+  <button class="day-btn" onclick="selDay(2,this)"><span>DAY</span>2</button>
+  <button class="day-btn" onclick="selDay(3,this)"><span>DAY</span>3</button>
+  <button class="day-btn" onclick="selDay(4,this)"><span>DAY</span>4</button>
+  <button class="day-btn" onclick="selDay(5,this)"><span>DAY</span>5</button>
+  <button class="day-btn" onclick="selDay(6,this)"><span>DAY</span>6</button>
+  <button class="day-btn" onclick="selDay(7,this)"><span>DAY</span>7</button>
+</div>
+
+<!-- ALGEMEEN -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <div class="sec-title">Algemeen</div>
+    <div class="chevron">&#8964;</div>
+  </div>
+  <div class="section-body">
+    <div class="field">
+      <label>Gewicht bij wake-up<small>kg</small></label>
+      <input class="ti" type="number" id="weight" placeholder="90.3" step="0.1" inputmode="decimal">
+    </div>
+  </div>
+</div>
+
+<!-- BIO MARKERS -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <div class="sec-title">Bio markers</div>
+    <div class="chevron">&#8964;</div>
+  </div>
+  <div class="section-body">
+    <div class="field"><label>Energy levels</label><div class="rg" id="energy"></div></div>
+    <div class="field"><label>Ability to focus</label><div class="rg" id="focus"></div></div>
+    <div class="field"><label>Mental & emotional stress</label><div class="rg" id="stress"></div></div>
+    <div class="field"><label>Signs of illness / flu</label><div class="rg" id="illness"></div></div>
+    <div class="field"><label>Muscle soreness</label><div class="rg" id="soreness"></div></div>
+  </div>
+</div>
+
+<!-- NUTRITION -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <div class="sec-title">Nutrition</div>
+    <div class="chevron">&#8964;</div>
+  </div>
+  <div class="section-body">
+    <div class="field"><label>Accuracy</label><div class="rg" id="accuracy"></div></div>
+    <div class="field"><label>Hunger / appetite</label><div class="rg" id="hunger"></div></div>
+    <div class="field"><label>Cravings</label><div class="rg" id="cravings"></div></div>
+    <div class="field"><label>Stool frequency</label><input class="ti" type="number" id="stool-freq" placeholder="1" inputmode="numeric"></div>
+    <div class="field"><label>Stool quality</label><select class="ti" id="stool-quality"><option value="">— kies —</option><option>Regular</option><option>Loose</option><option>Solid</option></select></div>
+    <div class="field"><label>Digestive stress</label><select class="ti" id="digestive"><option value="">— kies —</option><option>No</option><option>Gas</option><option>Bloating</option><option>Gas and bloating</option><option>Other</option></select></div>
+  </div>
+</div>
+
+<!-- TRAINING -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <div class="sec-title">Training</div>
+    <div class="chevron">&#8964;</div>
+  </div>
+  <div class="section-body">
+    <div class="field"><label>Session<small>bijv. Upper push / Rust dag</small></label><input class="ti wi" type="text" id="session" placeholder="Upper push"></div>
+    <div class="field"><label>Strength / performance</label><div class="rg" id="strength"></div></div>
+    <div class="field"><label>Motivation levels</label><div class="rg" id="motivation"></div></div>
+    <div class="field"><label>Muscle pumps</label><div class="rg" id="pumps"></div></div>
+    <div class="field"><label>Steps</label><input class="ti" type="number" id="steps" placeholder="8000" inputmode="numeric"></div>
+    <div class="field">
+      <label>Cardio<small>ja / nee + minuten</small></label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <div class="tog"><button id="cy" onclick="togCardio('yes')">Ja</button><button id="cn" onclick="togCardio('no')">Nee</button></div>
+        <input class="ti" type="number" id="cardio-mins" placeholder="min" style="width:64px" inputmode="numeric">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLAAP -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <div class="sec-title">Slaap</div>
+    <div class="chevron">&#8964;</div>
+  </div>
+  <div class="section-body">
+    <div class="field"><label>Total hours</label><input class="ti" type="number" id="sleep-h" placeholder="7.5" step="0.5" inputmode="decimal"></div>
+    <div class="field"><label>Satisfaction</label><div class="rg" id="sleep-sat"></div></div>
+  </div>
+</div>
+
+<!-- EXTRA -->
+<div class="section">
+  <div class="section-header" onclick="toggleSec(this)">
+    <div class="sec-title">Extra</div>
+    <div class="chevron">&#8964;</div>
+  </div>
+  <div class="section-body">
+    <div class="field"><label>Coffee / stimulants<small>incl. pre-workout</small></label><input class="ti" type="text" id="coffee" placeholder="2 koffie"></div>
+    <div class="field"><label>Daylight<small>minuten buiten</small></label><input class="ti" type="number" id="daylight" placeholder="30" inputmode="numeric"></div>
+    <div class="field"><label>Supplements</label><input class="ti wi" type="text" id="supps" placeholder="Creatine, vit D..."></div>
+  </div>
+</div>
+
+<div class="msg" id="msg"></div>
+
+<div class="submit-area">
+  <button class="btn-clr" onclick="clearForm()">Reset</button>
+  <button class="btn-sub" id="submit-btn" onclick="submitForm()">Opslaan in Sheet</button>
+</div>
+
+<script>
+const SHEET_ID = '1vJ2ry_QgeqJ8aMI8UwLduQvzQtoLUvxokZokUysxbO8';
+const CLIENT_EMAIL = 'fitness@project1-492713.iam.gserviceaccount.com';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+
+const rgFields = ['energy','focus','stress','illness','soreness','accuracy','hunger','cravings','strength','motivation','pumps','sleep-sat'];
+let currentDay = null, cardio = null;
+
+// Date display
+const days = ['zo','ma','di','wo','do','vr','za'];
+const now = new Date();
+document.getElementById('date-display').textContent = days[now.getDay()] + ' ' + now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear();
+
+// Build rating buttons
+rgFields.forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  for (let i = 1; i <= 5; i++) {
+    const b = document.createElement('button');
+    b.textContent = i;
+    b.onclick = function() { el.querySelectorAll('button').forEach(x => x.classList.remove('on')); this.classList.add('on'); };
+    el.appendChild(b);
+  }
+});
+
+// Load saved key
+const savedKey = localStorage.getItem('fitness_private_key');
+if (savedKey) {
+  document.getElementById('private-key-input').value = savedKey;
+  document.getElementById('key-banner').style.background = '#0a1a0f';
+  document.getElementById('key-banner').style.borderColor = '#1a4a2a';
+  document.querySelector('.key-banner p').style.color = '#5dba8a';
+  document.querySelector('.key-banner p').textContent = 'Private key opgeslagen (lokaal)';
+}
+document.getElementById('private-key-input').addEventListener('input', function() {
+  if (this.value.includes('PRIVATE KEY')) {
+    localStorage.setItem('fitness_private_key', this.value.trim());
+    document.getElementById('key-banner').style.background = '#0a1a0f';
+    document.querySelector('.key-banner p').textContent = 'Private key opgeslagen!';
+    document.querySelector('.key-banner p').style.color = '#5dba8a';
+  }
+});
+
+function selDay(n, btn) {
+  currentDay = n;
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function togCardio(v) {
+  cardio = v;
+  document.getElementById('cy').classList.toggle('on', v === 'yes');
+  document.getElementById('cn').classList.toggle('on', v === 'no');
+}
+
+function toggleSec(header) {
+  header.classList.toggle('collapsed');
+  header.nextElementSibling.classList.toggle('hidden');
+}
+
+function getRating(id) {
+  const a = document.querySelector('#' + id + ' button.on');
+  return a ? a.textContent : '';
+}
+
+function clearForm() {
+  document.querySelectorAll('.rg button, .day-btn').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('input[type=number], input[type=text]').forEach(i => i.value = '');
+  document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+  currentDay = null; cardio = null;
+  document.getElementById('cy').classList.remove('on');
+  document.getElementById('cn').classList.remove('on');
+  showMsg('', '');
+}
+
+function showMsg(type, text) {
+  const m = document.getElementById('msg');
+  m.className = 'msg' + (type ? ' ' + type : '');
+  m.textContent = text;
+  m.style.display = text ? 'block' : 'none';
+}
+
+function b64url(str) {
+  return btoa(str).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
+function b64urlUint8(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
+
+async function getToken(rawInput) {
+  const header = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const now2 = Math.floor(Date.now() / 1000);
+  const claim = b64url(JSON.stringify({ iss: CLIENT_EMAIL, scope: SCOPES, aud: 'https://oauth2.googleapis.com/token', exp: now2 + 3600, iat: now2 }));
+  const sigInput = header + '.' + claim;
+
+  // Accept full JSON paste or just the private key value
+  let privateKey = rawInput.trim();
+  try {
+    const parsed = JSON.parse(privateKey);
+    if (parsed.private_key) privateKey = parsed.private_key;
+  } catch(e) {}
+
+  // Extract base64 content between BEGIN/END markers (handles both \n and real newlines)
+  const match = privateKey.replace(/\\n/g, '\n').match(/-----BEGIN PRIVATE KEY-----([\s\S]+?)-----END PRIVATE KEY-----/);
+  if (!match) throw new Error('Private key niet gevonden — plak de volledige key of het hele JSON bestand');
+
+  const pemClean = match[1].replace(/\s/g, '');
+  if (!pemClean) throw new Error('Private key is leeg of ongeldig formaat');
+
+  let binaryDer;
+  try { binaryDer = Uint8Array.from(atob(pemClean), c => c.charCodeAt(0)); }
+  catch(e) { throw new Error('Private key kon niet worden gelezen — controleer of je de volledige key hebt geplakt inclusief BEGIN/END regels'); }
+
+  let cryptoKey;
+  try {
+    cryptoKey = await crypto.subtle.importKey(
+      'pkcs8', binaryDer.buffer,
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false, ['sign']
+    );
+  } catch(e) { throw new Error('Key import mislukt: ' + (e.message || 'controleer de private key')); }
+
+  const encoder = new TextEncoder();
+  const sigBuf = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', cryptoKey, encoder.encode(sigInput));
+  const jwt = sigInput + '.' + b64urlUint8(sigBuf);
+
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=' + jwt
+  });
+  const data = await res.json();
+  if (!data.access_token) throw new Error('Token fout: ' + (data.error_description || data.error || JSON.stringify(data)));
+  return data.access_token;
+}
+
+async function submitForm() {
+  const btn = document.getElementById('submit-btn');
+  const rawKey = document.getElementById('private-key-input').value.trim();
+  if (!rawKey) { showMsg('err', 'Plak eerst je private key in het gele vak.'); return; }
+  if (!currentDay) { showMsg('err', 'Selecteer eerst een dag.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Opslaan...';
+  showMsg('', '');
+
+  try {
+    const token = await getToken(rawKey);
+    const dayCol = ['B', 'C', 'D', 'E', 'F', 'G', 'H'][currentDay - 1];
+    const updates = [
+      { range: `Week1!${dayCol}3`, values: [[document.getElementById('weight').value || '']] },
+      { range: `Week1!${dayCol}6`, values: [[getRating('energy')]] },
+      { range: `Week1!${dayCol}7`, values: [[getRating('focus')]] },
+      { range: `Week1!${dayCol}8`, values: [[getRating('stress')]] },
+      { range: `Week1!${dayCol}9`, values: [[getRating('illness')]] },
+      { range: `Week1!${dayCol}10`, values: [[getRating('soreness')]] },
+      { range: `Week1!${dayCol}13`, values: [[getRating('accuracy')]] },
+      { range: `Week1!${dayCol}14`, values: [[getRating('hunger')]] },
+      { range: `Week1!${dayCol}15`, values: [[getRating('cravings')]] },
+      { range: `Week1!${dayCol}16`, values: [[document.getElementById('stool-freq').value || '']] },
+      { range: `Week1!${dayCol}17`, values: [[document.getElementById('stool-quality').value || '']] },
+      { range: `Week1!${dayCol}18`, values: [[document.getElementById('digestive').value || '']] },
+      { range: `Week1!${dayCol}21`, values: [[document.getElementById('session').value || '']] },
+      { range: `Week1!${dayCol}22`, values: [[getRating('strength')]] },
+      { range: `Week1!${dayCol}23`, values: [[getRating('motivation')]] },
+      { range: `Week1!${dayCol}24`, values: [[document.getElementById('steps').value || '']] },
+      { range: `Week1!${dayCol}25`, values: [[(cardio === 'yes' ? 'Yes, ' + (document.getElementById('cardio-mins').value || '?') + 'min' : 'No') || '']] },
+      { range: `Week1!${dayCol}26`, values: [[getRating('pumps')]] },
+      { range: `Week1!${dayCol}29`, values: [[document.getElementById('sleep-h').value || '']] },
+      { range: `Week1!${dayCol}30`, values: [[getRating('sleep-sat')]] },
+      { range: `Week1!${dayCol}33`, values: [[document.getElementById('coffee').value || '']] },
+      { range: `Week1!${dayCol}34`, values: [[document.getElementById('daylight').value || '']] },
+      { range: `Week1!${dayCol}35`, values: [[document.getElementById('supps').value || '']] },
+    ];
+    const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchUpdate`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data: updates })
+    });
+    const result = await res.json();
+    if (result.error) throw new Error(result.error.message);
+    showMsg('ok', 'Day ' + currentDay + ' opgeslagen in je Google Sheet!');
+  } catch (e) {
+    showMsg('err', 'Fout: ' + (e.message || e.toString() || 'Onbekende fout — probeer opnieuw'));
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Opslaan in Sheet';
+}
+</script>
+</body>
+</html>
