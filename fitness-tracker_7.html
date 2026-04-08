@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#8B0000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fitness Tracker">
+<title>Fitness Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--red:#8B0000;--bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#222;--border:rgba(255,255,255,0.08);--text:#f0f0f0;--muted:#888}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overscroll-behavior:none}
+.app-header{background:var(--red);padding:14px 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between}
+.app-header h1{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:0.04em}
+.app-header .date{font-size:11px;color:rgba(255,255,255,0.65)}
+.key-banner{background:#1a1200;border-bottom:1px solid #5a3a00;padding:10px 20px}
+.key-banner p{font-size:12px;color:#c8902a;margin-bottom:6px}
+.key-banner textarea{width:100%;height:52px;font-size:11px;font-family:monospace;background:#111;border:1px solid #5a3a00;border-radius:8px;padding:6px 8px;color:#f0f0f0;resize:none}
+.key-banner textarea:focus{outline:none;border-color:#c8902a}
+.week-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:10px}
+.week-bar .lbl{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.08em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+.week-ctrl{display:flex;align-items:center;gap:6px;flex:1}
+.week-ctrl button{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:16px;cursor:pointer}
+.week-ctrl input{flex:1;height:32px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:'Barlow Condensed',sans-serif;font-weight:600;background:var(--bg3);color:var(--text);text-align:center}
+.week-badge{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--red);letter-spacing:0.06em;white-space:nowrap}
+.day-tabs{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)}
+.day-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 2px;border-right:1px solid var(--border);cursor:pointer;background:var(--bg2);transition:background 0.1s;position:relative}
+.day-tab:last-child{border-right:none}
+.day-tab .dn{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--muted);line-height:1}
+.day-tab .dl{font-size:9px;color:var(--muted);letter-spacing:0.04em;margin-top:1px}
+.day-tab.on{background:var(--red)}
+.day-tab.on .dn,.day-tab.on .dl{color:#fff}
+.day-tab .dot{width:5px;height:5px;border-radius:50%;background:#5dba8a;position:absolute;top:4px;right:4px}
+.read-strip{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:8px}
+.btn-load{flex:1;height:34px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.04em;cursor:pointer}
+.btn-load:hover{border-color:var(--red);color:var(--red)}
+.btn-edit{height:34px;padding:0 14px;background:var(--bg3);border:1px solid rgba(93,186,138,0.4);border-radius:8px;color:#5dba8a;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:none}
+.read-badge{font-size:11px;color:#5dba8a;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.05em;white-space:nowrap;display:none}
+.section{border-bottom:1px solid var(--border)}
+.sec-hdr{padding:10px 20px 6px;display:flex;align-items:center;cursor:pointer;user-select:none}
+.sec-hdr .sec-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--red)}
+.sec-hdr .chev{margin-left:auto;color:var(--muted);font-size:14px;transition:transform 0.2s}
+.sec-hdr.collapsed .chev{transform:rotate(-90deg)}
+.sec-body{padding:0 20px 12px}
+.sec-body.hidden{display:none}
+.field{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);gap:8px}
+.field:last-child{border-bottom:none}
+.field label{font-size:13px;color:var(--text);flex:1;line-height:1.3}
+.field label small{display:block;font-size:10px;color:var(--muted)}
+.rg{display:flex;gap:3px}
+.rg button{width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.1s;touch-action:manipulation}
+.rg button.on{background:var(--red);border-color:var(--red);color:#fff}
+.rg button.ro{pointer-events:none}
+.ti{width:120px;height:34px;border:1px solid var(--border);border-radius:8px;padding:0 8px;font-size:13px;background:var(--bg3);color:var(--text);font-family:'Barlow',sans-serif}
+.ti:focus{outline:none;border-color:var(--red)}
+.ti[readonly]{opacity:0.7}
+.wi{width:160px}
+.tog{display:flex;gap:4px}
+.tog button{height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;cursor:pointer;transition:all 0.1s}
+.tog button.on{background:var(--red);border-color:var(--red);color:#fff}
+.tog button.ro{pointer-events:none}
+.bottom-bar{padding:14px 20px 32px;display:flex;gap:8px}
+.btn-sub{flex:1;height:50px;background:var(--red);color:#fff;border:none;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;letter-spacing:0.05em;cursor:pointer;touch-action:manipulation}
+.btn-sub:disabled{opacity:0.4}
+.btn-clr{height:50px;padding:0 16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;cursor:pointer}
+.msg{margin:0 20px 10px;padding:10px 14px;border-radius:10px;font-size:13px;display:none}
+.msg.ok{background:rgba(42,122,75,0.2);border:1px solid rgba(42,122,75,0.4);color:#5dba8a}
+.msg.err{background:rgba(180,40,40,0.15);border:1px solid rgba(180,40,40,0.3);color:#f08080}
+.msg.info{background:rgba(50,100,180,0.15);border:1px solid rgba(50,100,180,0.3);color:#7ab4f0}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <h1>Fitness Check-in</h1>
+    <div class="date" id="date-display"></div>
+  </div>
+</div>
+
+<div class="key-banner" id="key-banner">
+  <p>Plak hier je volledige JSON bestand (eenmalig — wordt lokaal opgeslagen)</p>
+  <textarea id="pki" placeholder='{"type":"service_account","private_key":"-----BEGIN PRIVATE KEY-----\n...'></textarea>
+</div>
+
+<div class="week-bar">
+  <span class="lbl">Week</span>
+  <div class="week-ctrl">
+    <button onclick="changeWeek(-1)">&#8249;</button>
+    <input type="number" id="week-input" value="97" min="1" max="300" oninput="updateWeek()">
+    <button onclick="changeWeek(1)">&#8250;</button>
+  </div>
+  <span class="week-badge" id="week-badge">WEEK 97</span>
+</div>
+
+<div class="day-tabs" id="day-tabs">
+  <div class="day-tab" onclick="selectDay(1,this)"><div class="dn">1</div><div class="dl">DAY</div></div>
+  <div class="day-tab" onclick="selectDay(2,this)"><div class="dn">2</div><div class="dl">DAY</div></div>
+  <div class="day-tab" onclick="selectDay(3,this)"><div class="dn">3</div><div class="dl">DAY</div></div>
+  <div class="day-tab" onclick="selectDay(4,this)"><div class="dn">4</div><div class="dl">DAY</div></div>
+  <div class="day-tab" onclick="selectDay(5,this)"><div class="dn">5</div><div class="dl">DAY</div></div>
+  <div class="day-tab" onclick="selectDay(6,this)"><div class="dn">6</div><div class="dl">DAY</div></div>
+  <div class="day-tab" onclick="selectDay(7,this)"><div class="dn">7</div><div class="dl">DAY</div></div>
+</div>
+
+<div class="read-strip">
+  <button class="btn-load" id="btn-load" onclick="loadFromSheet()">
+    <span class="spinner" id="load-spin" style="display:none"></span>Laden uit sheet
+  </button>
+  <button class="btn-edit" id="btn-edit" onclick="switchToEdit()">Bewerken</button>
+  <span class="read-badge" id="read-badge">LEESMODUS</span>
+</div>
+
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec(this)"><div class="sec-title">Algemeen</div><div class="chev">&#8964;</div></div>
+  <div class="sec-body">
+    <div class="field"><label>Datum</label><input class="ti" type="date" id="date" style="width:160px"></div>
+    <div class="field"><label>Gewicht bij wake-up<small>kg</small></label><input class="ti" type="number" id="weight" placeholder="90.3" step="0.1" inputmode="decimal"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec(this)"><div class="sec-title">Bio markers</div><div class="chev">&#8964;</div></div>
+  <div class="sec-body">
+    <div class="field"><label>Energy levels</label><div class="rg" id="energy"></div></div>
+    <div class="field"><label>Ability to focus</label><div class="rg" id="focus"></div></div>
+    <div class="field"><label>Mental & emotional stress</label><div class="rg" id="stress"></div></div>
+    <div class="field"><label>Signs of illness / flu</label><div class="rg" id="illness"></div></div>
+    <div class="field"><label>Muscle soreness</label><div class="rg" id="soreness"></div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec(this)"><div class="sec-title">Nutrition</div><div class="chev">&#8964;</div></div>
+  <div class="sec-body">
+    <div class="field"><label>Accuracy</label><div class="rg" id="accuracy"></div></div>
+    <div class="field"><label>Hunger / appetite</label><div class="rg" id="hunger"></div></div>
+    <div class="field"><label>Cravings</label><div class="rg" id="cravings"></div></div>
+    <div class="field"><label>Stool frequency</label><input class="ti" type="number" id="stool-freq" placeholder="1" inputmode="numeric"></div>
+    <div class="field"><label>Stool quality</label><select class="ti" id="stool-quality"><option value="">— kies —</option><option>Regular</option><option>Loose</option><option>Solid</option></select></div>
+    <div class="field"><label>Digestive stress</label><select class="ti" id="digestive"><option value="">— kies —</option><option>No</option><option>Gas</option><option>Bloating</option><option>Gas and bloating</option><option>Other</option></select></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec(this)"><div class="sec-title">Training</div><div class="chev">&#8964;</div></div>
+  <div class="sec-body">
+    <div class="field"><label>Session<small>bijv. Upper push / Rust dag</small></label><input class="ti wi" type="text" id="session" placeholder="Upper push"></div>
+    <div class="field"><label>Strength / performance</label><div class="rg" id="strength"></div></div>
+    <div class="field"><label>Motivation levels</label><div class="rg" id="motivation"></div></div>
+    <div class="field"><label>Muscle pumps</label><div class="rg" id="pumps"></div></div>
+    <div class="field"><label>Steps</label><input class="ti" type="number" id="steps" placeholder="8000" inputmode="numeric"></div>
+    <div class="field">
+      <label>Cardio<small>ja / nee + minuten</small></label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <div class="tog"><button id="cy" onclick="togCardio('yes')">Ja</button><button id="cn" onclick="togCardio('no')">Nee</button></div>
+        <input class="ti" type="number" id="cardio-mins" placeholder="min" style="width:60px" inputmode="numeric">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec(this)"><div class="sec-title">Slaap</div><div class="chev">&#8964;</div></div>
+  <div class="sec-body">
+    <div class="field"><label>Total hours</label><input class="ti" type="number" id="sleep-h" placeholder="7.5" step="0.5" inputmode="decimal"></div>
+    <div class="field"><label>Satisfaction</label><div class="rg" id="sleep-sat"></div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-hdr" onclick="toggleSec(this)"><div class="sec-title">Extra</div><div class="chev">&#8964;</div></div>
+  <div class="sec-body">
+    <div class="field"><label>Coffee / stimulants<small>incl. pre-workout</small></label><input class="ti" type="text" id="coffee" placeholder="2 koffie"></div>
+    <div class="field"><label>Daylight<small>minuten buiten</small></label><input class="ti" type="number" id="daylight" placeholder="30" inputmode="numeric"></div>
+    <div class="field"><label>Supplements</label><input class="ti wi" type="text" id="supps" placeholder="Creatine, vit D..."></div>
+  </div>
+</div>
+
+<div class="msg" id="msg"></div>
+<div class="bottom-bar" id="bottom-bar">
+  <button class="btn-clr" onclick="clearForm()">Reset</button>
+  <button class="btn-sub" id="submit-btn" onclick="submitForm()">Opslaan in Sheet</button>
+</div>
+
+<script>
+const SHEET_ID='1vJ2ry_QgeqJ8aMI8UwLduQvzQtoLUvxokZokUysxbO8';
+const CLIENT_EMAIL='fitness@project1-492713.iam.gserviceaccount.com';
+const SCOPES='https://www.googleapis.com/auth/spreadsheets';
+const ROWS={date:9,weight:10,energy:14,focus:15,stress:16,illness:17,soreness:18,accuracy:23,hunger:24,cravings:25,'stool-freq':26,'stool-quality':27,digestive:28,session:32,strength:33,motivation:34,steps:35,cardio:36,pumps:37,'sleep-h':48,'sleep-sat':49,coffee:53,daylight:54,supps:55};
+const rgFields=['energy','focus','stress','illness','soreness','accuracy','hunger','cravings','strength','motivation','pumps','sleep-sat'];
+let currentDay=null,cardio=null,currentWeek=97,readMode=false;
+
+const dNames=['zo','ma','di','wo','do','vr','za'];
+const n=new Date();
+document.getElementById('date-display').textContent=dNames[n.getDay()]+' '+n.getDate()+'/'+(n.getMonth()+1)+'/'+n.getFullYear();
+document.getElementById('date').value=n.toISOString().split('T')[0];
+
+rgFields.forEach(id=>{
+  const el=document.getElementById(id);
+  if(!el)return;
+  for(let i=1;i<=5;i++){
+    const b=document.createElement('button');
+    b.textContent=i;
+    b.onclick=function(){if(readMode)return;el.querySelectorAll('button').forEach(x=>x.classList.remove('on'));this.classList.add('on');};
+    el.appendChild(b);
+  }
+});
+
+const sk=localStorage.getItem('fitness_pk');
+if(sk){
+  document.getElementById('pki').value=sk;
+  setKeyBannerOk();
+}
+document.getElementById('pki').addEventListener('input',function(){
+  const v=this.value.trim();
+  if(v.includes('PRIVATE KEY')||v.includes('"private_key"')){
+    localStorage.setItem('fitness_pk',v);
+    setKeyBannerOk();
+  }
+});
+function setKeyBannerOk(){
+  const b=document.getElementById('key-banner');
+  b.style.cssText='background:#0a1a0f;border-bottom:1px solid #1a4a2a;padding:10px 20px';
+  b.querySelector('p').textContent='Private key opgeslagen';
+  b.querySelector('p').style.color='#5dba8a';
+}
+
+function changeWeek(d){currentWeek=Math.max(1,currentWeek+d);document.getElementById('week-input').value=currentWeek;document.getElementById('week-badge').textContent='WEEK '+currentWeek;}
+function updateWeek(){currentWeek=parseInt(document.getElementById('week-input').value)||97;document.getElementById('week-badge').textContent='WEEK '+currentWeek;}
+function selectDay(n,el){currentDay=n;document.querySelectorAll('.day-tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');if(readMode)switchToEdit();showMsg('','');}
+function togCardio(v){if(readMode)return;cardio=v;document.getElementById('cy').classList.toggle('on',v==='yes');document.getElementById('cn').classList.toggle('on',v==='no');}
+function toggleSec(h){h.classList.toggle('collapsed');h.nextElementSibling.classList.toggle('hidden');}
+function getRating(id){const a=document.querySelector('#'+id+' button.on');return a?a.textContent:'';}
+function setRating(id,val){document.querySelectorAll('#'+id+' button').forEach(b=>{b.classList.toggle('on',b.textContent==val);});}
+
+function clearForm(){
+  document.querySelectorAll('.rg button').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('input[type=number],input[type=text],input[type=date]').forEach(i=>i.value='');
+  document.querySelectorAll('select').forEach(s=>s.selectedIndex=0);
+  cardio=null;
+  document.getElementById('cy').classList.remove('on');
+  document.getElementById('cn').classList.remove('on');
+  showMsg('','');
+  if(readMode)switchToEdit();
+}
+
+function showMsg(type,text){
+  const m=document.getElementById('msg');
+  m.className='msg'+(type?' '+type:'');
+  m.textContent=text;
+  m.style.display=text?'block':'none';
+}
+
+function setReadMode(on){
+  readMode=on;
+  document.getElementById('btn-edit').style.display=on?'block':'none';
+  document.getElementById('read-badge').style.display=on?'block':'none';
+  document.getElementById('bottom-bar').style.display=on?'none':'flex';
+  document.querySelectorAll('.ti').forEach(el=>{if(on)el.setAttribute('readonly',true);else el.removeAttribute('readonly');});
+  document.querySelectorAll('select').forEach(el=>{el.disabled=on;});
+  document.querySelectorAll('.rg button,.tog button').forEach(b=>{if(on)b.classList.add('ro');else b.classList.remove('ro');});
+}
+function switchToEdit(){setReadMode(false);showMsg('info','Bewerkingsmodus — druk op "Opslaan in Sheet" om wijzigingen door te voeren');}
+
+function b64url(s){return btoa(s).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');}
+function b64u8(b){return btoa(String.fromCharCode(...new Uint8Array(b))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');}
+
+async function getToken(raw){
+  const hdr=b64url(JSON.stringify({alg:'RS256',typ:'JWT'}));
+  const t=Math.floor(Date.now()/1000);
+  const cl=b64url(JSON.stringify({iss:CLIENT_EMAIL,scope:SCOPES,aud:'https://oauth2.googleapis.com/token',exp:t+3600,iat:t}));
+  const si=hdr+'.'+cl;
+  let pk=raw.trim();
+  try{const p=JSON.parse(pk);if(p.private_key)pk=p.private_key;}catch(e){}
+  const m=pk.replace(/\\n/g,'\n').match(/-----BEGIN PRIVATE KEY-----([\s\S]+?)-----END PRIVATE KEY-----/);
+  if(!m)throw new Error('Private key niet gevonden — plak het volledige JSON bestand');
+  const clean=m[1].replace(/\s/g,'');
+  let der;
+  try{der=Uint8Array.from(atob(clean),c=>c.charCodeAt(0));}
+  catch(e){throw new Error('Private key kon niet worden gelezen');}
+  let key;
+  try{key=await crypto.subtle.importKey('pkcs8',der.buffer,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']);}
+  catch(e){throw new Error('Key import mislukt: '+(e.message||'ongeldige key'));}
+  const sig=await crypto.subtle.sign('RSASSA-PKCS1-v1_5',key,new TextEncoder().encode(si));
+  const jwt=si+'.'+b64u8(sig);
+  const res=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion='+jwt});
+  const d=await res.json();
+  if(!d.access_token)throw new Error('Token fout: '+(d.error_description||d.error||JSON.stringify(d)));
+  return d.access_token;
+}
+
+async function loadFromSheet(){
+  const raw=document.getElementById('pki').value.trim();
+  if(!raw){showMsg('err','Plak eerst je private key / JSON in het vak bovenaan.');return;}
+  if(!currentDay){showMsg('err','Selecteer eerst een dag.');return;}
+  document.getElementById('load-spin').style.display='inline-block';
+  document.getElementById('btn-load').disabled=true;
+  showMsg('','');
+  try{
+    const token=await getToken(raw);
+    const col=['B','C','D','E','F','G','H'][currentDay-1];
+    const W=`WEEK ${currentWeek}`;
+    const ranges=Object.entries(ROWS).map(([id,row])=>`'${W}'!${col}${row}`);
+    const rp=ranges.map(r=>'ranges='+encodeURIComponent(r)).join('&');
+    const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchGet?${rp}`,{headers:{'Authorization':'Bearer '+token}});
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const vals={};
+    Object.keys(ROWS).forEach((id,i)=>{vals[id]=(data.valueRanges[i]?.values?.[0]?.[0]||'');});
+
+    document.getElementById('date').value=vals['date'];
+    document.getElementById('weight').value=vals['weight'];
+    document.getElementById('stool-freq').value=vals['stool-freq'];
+    document.getElementById('steps').value=vals['steps'];
+    document.getElementById('sleep-h').value=vals['sleep-h'];
+    document.getElementById('coffee').value=vals['coffee'];
+    document.getElementById('daylight').value=vals['daylight'];
+    document.getElementById('supps').value=vals['supps'];
+    document.getElementById('session').value=vals['session'];
+
+    const sq=document.getElementById('stool-quality');
+    [...sq.options].forEach(o=>{o.selected=o.value===vals['stool-quality'];});
+    const dg=document.getElementById('digestive');
+    [...dg.options].forEach(o=>{o.selected=o.value===vals['digestive'];});
+
+    rgFields.forEach(id=>setRating(id,vals[id]));
+
+    const cv=vals['cardio']||'';
+    if(cv.toLowerCase().startsWith('yes')){
+      cardio='yes';document.getElementById('cy').classList.add('on');document.getElementById('cn').classList.remove('on');
+      const mins=cv.match(/(\d+)min/);if(mins)document.getElementById('cardio-mins').value=mins[1];
+    }else if(cv){
+      cardio='no';document.getElementById('cn').classList.add('on');document.getElementById('cy').classList.remove('on');
+    }
+
+    setReadMode(true);
+    showMsg('ok',`Week ${currentWeek} · Day ${currentDay} geladen`);
+
+    const tab=document.querySelectorAll('.day-tab')[currentDay-1];
+    if(!tab.querySelector('.dot'))tab.insertAdjacentHTML('beforeend','<div class="dot"></div>');
+  }catch(e){
+    showMsg('err','Laden mislukt: '+(e.message||e.toString()));
+  }
+  document.getElementById('load-spin').style.display='none';
+  document.getElementById('btn-load').disabled=false;
+}
+
+async function submitForm(){
+  const raw=document.getElementById('pki').value.trim();
+  if(!raw){showMsg('err','Plak eerst je private key / JSON in het vak bovenaan.');return;}
+  if(!currentDay){showMsg('err','Selecteer eerst een dag.');return;}
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Opslaan...';showMsg('','');
+  try{
+    const token=await getToken(raw);
+    const col=['B','C','D','E','F','G','H'][currentDay-1];
+    const W=`WEEK ${currentWeek}`;
+    const updates=[
+      {range:`'${W}'!${col}9`,values:[[document.getElementById('date').value||'']]},
+      {range:`'${W}'!${col}10`,values:[[document.getElementById('weight').value||'']]},
+      {range:`'${W}'!${col}6`,values:[[getRating('energy')]]},
+      {range:`'${W}'!${col}7`,values:[[getRating('focus')]]},
+      {range:`'${W}'!${col}8`,values:[[getRating('stress')]]},
+      {range:`'${W}'!${col}9`,values:[[getRating('illness')]]},
+      {range:`'${W}'!${col}10`,values:[[getRating('soreness')]]},
+      {range:`'${W}'!${col}13`,values:[[getRating('accuracy')]]},
+      {range:`'${W}'!${col}14`,values:[[getRating('hunger')]]},
+      {range:`'${W}'!${col}15`,values:[[getRating('cravings')]]},
+      {range:`'${W}'!${col}16`,values:[[document.getElementById('stool-freq').value||'']]},
+      {range:`'${W}'!${col}17`,values:[[document.getElementById('stool-quality').value||'']]},
+      {range:`'${W}'!${col}18`,values:[[document.getElementById('digestive').value||'']]},
+      {range:`'${W}'!${col}21`,values:[[document.getElementById('session').value||'']]},
+      {range:`'${W}'!${col}22`,values:[[getRating('strength')]]},
+      {range:`'${W}'!${col}23`,values:[[getRating('motivation')]]},
+      {range:`'${W}'!${col}24`,values:[[document.getElementById('steps').value||'']]},
+      {range:`'${W}'!${col}25`,values:[[(cardio==='yes'?'Yes, '+(document.getElementById('cardio-mins').value||'?')+'min':'No')||'']]},
+      {range:`'${W}'!${col}26`,values:[[getRating('pumps')]]},
+      {range:`'${W}'!${col}29`,values:[[document.getElementById('sleep-h').value||'']]},
+      {range:`'${W}'!${col}30`,values:[[getRating('sleep-sat')]]},
+      {range:`'${W}'!${col}33`,values:[[document.getElementById('coffee').value||'']]},
+      {range:`'${W}'!${col}34`,values:[[document.getElementById('daylight').value||'']]},
+      {range:`'${W}'!${col}35`,values:[[document.getElementById('supps').value||'']]},
+    ];
+    const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchUpdate`,{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({valueInputOption:'USER_ENTERED',data:updates})});
+    const result=await res.json();
+    if(result.error)throw new Error(result.error.message);
+    showMsg('ok',`Week ${currentWeek} · Day ${currentDay} opgeslagen!`);
+  }catch(e){
+    showMsg('err','Fout: '+(e.message||e.toString()||'Onbekende fout'));
+  }
+  btn.disabled=false;btn.textContent='Opslaan in Sheet';
+}
+</script>
+</body>
+</html>
